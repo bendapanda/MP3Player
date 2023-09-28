@@ -16,7 +16,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-
+/**
+ * Basic UI for the overall application. Needs some extensive work as-is, just a prototype for now
+ */
 
 public class Main extends Application {
 	@Override
