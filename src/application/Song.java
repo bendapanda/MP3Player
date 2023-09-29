@@ -15,6 +15,7 @@ public class Song {
 	private Media media;
 	private HashSet<String> tags = new HashSet<String>();
 	private String author = "Unknown Artist";
+	private int id;
 	
 	//TODO: Use a builder pattern to allow for songs to be created easier?
 	
@@ -22,6 +23,8 @@ public class Song {
 	 * 
 	 * @param name : name of the song
 	 * @param filePath : location of the song's mp3 file
+	 * @param id : integer id of the song, used in the database. 
+	 * this is unique to each song.
 	 */
 	public Song(String name, String filePath) {
 		this.setName(name);
@@ -117,6 +120,14 @@ public class Song {
 
 	public void setAuthor(String author) {
 		this.author = author;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 	
 }

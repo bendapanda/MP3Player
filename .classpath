@@ -26,5 +26,6 @@
 			<attribute name="javadoc_location" value="http://junit.org/junit5/docs/current/api/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/javaDrivers/sqlite-jdbc-3.43.0.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
