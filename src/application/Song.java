@@ -1,30 +1,31 @@
 package application;
 
 import java.io.File;
+import java.nio.InvalidMarkException;
+import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javafx.scene.media.Media;
+import javafx.scene.media.MediaException;
 
 public class Song {
 	private String name;
 	private String filePath;
 	private Media media;
-	private ArrayList<String> tags;
+	private HashSet<String> tags = new HashSet<String>();
+	private String author = "Unknown Artist";
 	
+	//TODO: Use a builder pattern to allow for songs to be created easier?
+	
+	/** Initialises a song object
+	 * 
+	 * @param name : name of the song
+	 * @param filePath : location of the song's mp3 file
+	 */
 	public Song(String name, String filePath) {
-		this.name = name;
-		this.filePath = filePath;
-		this.tags = new ArrayList<String>();
-		
-		this.setMedia(new Media( new File(this.filePath).toURI().toString()) );		
-	}
-	
-	public Song(String name, String filePath, ArrayList<String> tags) {
-		this.name = name;
-		this.filePath = filePath;
-		this.tags = tags;
-		
-		this.setMedia(new Media( new File(this.filePath).toURI().toString()) );		
+		this.setName(name);
+		this.setFilePath(filePath);	
 	}
 	
 	/**
@@ -34,6 +35,11 @@ public class Song {
 	public String getName() {
 		return name;
 	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 	/** Returns the filepath of the song playing.
 	 * 
 	 * @return filepath of the song
@@ -47,7 +53,12 @@ public class Song {
 	 */
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
-		this.setMedia(new Media( new File(this.filePath).toURI().toString() ));
+				
+		try { // ensure the filepath is valid, else throw an error
+			this.setMedia(new Media( new File(this.filePath).toURI().toString()));	
+		} catch(MediaException e) {
+			throw new InvalidPathException(this.filePath, e.getMessage());
+		}	
 	}
 
 	/** Returns the song's media.
@@ -61,6 +72,7 @@ public class Song {
 	/** Set's the song's <code>Media</code> private, as user should not
 	 * be able to change the media of the song, only file path
 	 * 
+	 * @param m : the media to be set
 	 */
 	private void setMedia(Media m) {
 		this.media = m;
@@ -70,7 +82,7 @@ public class Song {
 	 * 
 	 * @return an <code>ArrayList</code> of all of the song's tags
 	 */
-	public ArrayList<String> getTags() {
+	public HashSet<String> getTags() {
 		return tags;
 	}
 	
@@ -88,10 +100,23 @@ public class Song {
 	 * @param tagName name of tag to be added
 	 */
 	public void addTag(String tagName) {
-		if(!tags.contains(tagName)) {
-			tags.add(tagName);
-		}
+		tags.add(tagName);
 	}
 	
+	/**
+	 * 
+	 * @param tagsToSet
+	 */
+	public void setTags(HashSet<String> tagsToSet) {
+		this.tags = tagsToSet;
+	}
+
+	public String getAuthor() {
+		return author;
+	}
+
+	public void setAuthor(String author) {
+		this.author = author;
+	}
 	
 }
