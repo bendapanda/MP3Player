@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import application.DataBaseManager;
+import application.Playlist;
 import application.Song;
 
 class DataBaseManagerTests {
@@ -48,6 +49,10 @@ class DataBaseManagerTests {
 		
 	}
 	
+	/**
+	 * tests adding a song to the database (TODO at the moment tests are done by hand,
+	 * in SQLite itself. In the future these will be queried with other functions i write)
+	 */
 	@Test
 	void testAddSongToDataBase() {
 		try {
@@ -60,5 +65,21 @@ class DataBaseManagerTests {
 			fail();
 		}
 	}
+	
+	/**
+	 * tests adding a playlist to the database
+	 */
+	@Test
+	void testAddPlaylistToDataBase() {
+		try {
+			Playlist playlistToAdd = new Playlist("myPlaylist");
+			DataBaseManager.addPlaylistToDataBase(testDatabaseName, playlistToAdd);	
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+			fail();
+		}
+	}
+	
+	
 
 }

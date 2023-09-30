@@ -13,10 +13,12 @@ public class Playlist {
 	private ArrayList<Song> songs;
 	private ArrayList<Song> songsToPlay;
 	private int currentIndex;
+	private String name;
 	
-	public Playlist() {
+	public Playlist(String name) {
 		this.songs = new ArrayList<Song>();
 		playlistIsEmpty = true;
+		this.setName(name);
 	}
 	
 	public Playlist(ArrayList<Song> songs) {
@@ -59,5 +61,13 @@ public class Playlist {
 	 */
 	public void addSong(Song song) {
 		songs.add(song);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }

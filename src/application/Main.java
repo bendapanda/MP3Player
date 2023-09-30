@@ -31,7 +31,7 @@ public class Main extends Application {
 			Song crabRave = new Song("Crab Rave", "src/resources/crab-rave.mp3");
 			
 			
-			Playlist playlist = new Playlist();
+			Playlist playlist = new Playlist("myPlaylist");
 			playlist.addSong(rockdj);
 			playlist.addSong(crabRave);
 			
