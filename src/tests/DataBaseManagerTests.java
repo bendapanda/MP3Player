@@ -52,6 +52,8 @@ class DataBaseManagerTests {
 	void testAddSongToDataBase() {
 		try {
 			Song songToAdd = new Song("test_song", "src/resources/crab-rave.mp3");
+			songToAdd.addTag("Hype");
+			songToAdd.addTag("Sick Music");
 			DataBaseManager.addSongToDataBase(testDatabaseName, songToAdd);
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());

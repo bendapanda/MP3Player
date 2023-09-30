@@ -15,6 +15,19 @@ import java.util.ArrayList;
  *TODO: put all create functions into one private function that takes a sql string as an argument.
  * class that manages the database for the music player.
  * Begin by calling the init function.
+ * 
+ * 
+ * Things this class needs to do
+ * 
+ * x initalise the database
+ * x add a song to the database, with its tags
+ * x add a tag to the database
+ * - add a playlist to the database, along with all its songs
+ * - query a song(s) from the database, by name, filepath, author
+ * - query a tag from the database
+ * - query a playlist from the database by name
+ * - query songs from the database by tag (s)
+ * - query tags from the database by playlist
  */
 public class DataBaseManager {
 	
@@ -47,7 +60,7 @@ public class DataBaseManager {
 		String sqlCommand = "CREATE TABLE IF NOT EXISTS songs (\n"
 				+ "id integer PRIMARY KEY,\n"
 				+ "name text NOT NULL,\n"
-				+ "filepath text NOT NULL,\n"
+				+ "filepath text NOT NULL UNIQUE,\n"
 				+ "author text"
 				+ ");";
 		Statement stmt = conn.createStatement();
@@ -66,7 +79,7 @@ public class DataBaseManager {
 
 		String sqlCommand = "CREATE TABLE IF NOT EXISTS tags (\n"
 				+ "id integer PRIMARY KEY,\n"
-				+ "name text NOT NULL"
+				+ "name text NOT NULL UNIQUE"
 				+ ");";
 		Statement stmt = conn.createStatement();
 		stmt.execute(sqlCommand);
@@ -123,10 +136,11 @@ public class DataBaseManager {
 
 		String sqlCommand = "CREATE TABLE IF NOT EXISTS songs_tags (\n"
 				+ "id integer PRIMARY KEY,\n"
-				+ "playlist_id INTEGER,\n"
+				+ "tag_id INTEGER,\n"
 				+ "song_id INTEGER,\n"
-				+ "FOREIGN KEY(playlist_id) REFERENCES playlists(id),\n"
-				+ "FOREIGN KEY(song_id) REFERENCES songs(id)"
+				+ "FOREIGN KEY(tag_id) REFERENCES tags(id),\n"
+				+ "FOREIGN KEY(song_id) REFERENCES songs(id),\n"
+				+ "UNIQUE(tag_id, song_id)"
 				+ ");";
 		Statement stmt = conn.createStatement();
 		stmt.execute(sqlCommand);
@@ -134,28 +148,89 @@ public class DataBaseManager {
 		DataBaseManager.closeConnection();
 	}
 	
+	/**
+	 * Adds tag to tags database, if the tag is not already in the database.
+	 * @param filename : filename of the database
+	 * @param tag : tag to add to the database
+	 */
+	public static void addTagToDataBase(String filename, String tag) throws SQLException{
+		DataBaseManager.connect(filename);
+		
+		String sqlCommand = "INSERT INTO tags (name) VALUES (?);";
+		
+		PreparedStatement stmt = DataBaseManager.conn.prepareStatement(sqlCommand);
+		stmt.setString(1, tag);
+		
+		try {
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		
+		DataBaseManager.closeConnection();
+	}
+	/**
+	 * TODO: This is definitately not the best way to do this, but will do for now
+	 * Given a <code>Song</code> object and a tag (both which should already be in the database),
+	 * creates a connection between them
+	 * @param filename
+	 * @param song
+	 * @param tag
+	 */
+	private static void addSongTagConnectionToDataBase(String filename, Song song, String tag) throws SQLException{
+		DataBaseManager.connect(filename);
+		
+		String sqlCommand = "INSERT INTO songs_tags (song_id, tag_id) VALUES (?, ?);";
+		
+		String getSongIDSqlCommand = "SELECT id FROM songs WHERE filepath = ?;";
+		PreparedStatement songIDStmt = DataBaseManager.conn.prepareStatement(getSongIDSqlCommand);
+		songIDStmt.setString(1, song.getFilePath());
+		ResultSet songIDRs = songIDStmt.executeQuery();
+		int songID = songIDRs.getInt("id");
+		
+		String getTagIDSqlCommand = "SELECT id FROM tags WHERE name = ?;";
+		PreparedStatement tagIDStmt = DataBaseManager.conn.prepareStatement(getTagIDSqlCommand);
+		tagIDStmt.setString(1, tag);
+		ResultSet tagIDRs = tagIDStmt.executeQuery();
+		int tagID = tagIDRs.getInt("id");
+		
+		PreparedStatement stmt = DataBaseManager.conn.prepareStatement(sqlCommand);
+		stmt.setInt(1, songID);
+		stmt.setInt(2, tagID);
+		stmt.executeUpdate();
+		
+		DataBaseManager.closeConnection();
+	}
+	
 	/** Adds song to songs table in database. If the table does not exist, creates it.
-	 * TODO: also add the song's tags to the database
+	 * Also add the song's tags to the database, as well as connecting them through a join table.
 	 * @param filename : filename of the database
 	 * @param song : <code>Song</code> object to be added
 	 * @throws SQLException
 	 */
-	
 	public static void addSongToDataBase(String filename, Song song) throws SQLException {
 		DataBaseManager.connect(filename);
-		try {
-			String sqlCommand = "INSERT INTO songs(name, filepath, author) VALUES ( ?, ?, ?);";
-			
-			PreparedStatement stmt = DataBaseManager.conn.prepareStatement(sqlCommand);
-			stmt.setString(1, song.getName());
-			stmt.setString(2, song.getFilePath());
-			stmt.setString(3, song.getAuthor());
-			
+		
+		String sqlCommand = "INSERT INTO songs(name, filepath, author) VALUES ( ?, ?, ?);";
+		
+		PreparedStatement stmt = DataBaseManager.conn.prepareStatement(sqlCommand);
+		stmt.setString(1, song.getName());
+		stmt.setString(2, song.getFilePath());
+		stmt.setString(3, song.getAuthor());
+		
+		try {// attempt to add the song to the database. If not unique, return
 			stmt.executeUpdate();	
-		} catch(SQLException e) {
-			DataBaseManager.createSongTable(filename);
-			DataBaseManager.addSongToDataBase(filename, song);
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+			return;
 		}
+		
+		
+		for(String tag : song.getTags()) {
+			DataBaseManager.addTagToDataBase(filename, tag);
+			DataBaseManager.addSongTagConnectionToDataBase(filename, song, tag);
+		}
+
 		
 		DataBaseManager.closeConnection();
 	}
@@ -236,5 +311,5 @@ public class DataBaseManager {
 		DataBaseManager.createSongTagsTable(filename);
 		DataBaseManager.createPlaylistSongTable(filename);
 	}
-	
+
 }
