@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -25,13 +26,14 @@ import java.util.HashSet;
  * x add a song to the database, with its tags
  * x add a tag to the database
  * x add a playlist to the database, along with all its songs 
- * - query a song(s) from the database, by name, filepath, author
- * - query a tag from the database
- * - query a playlist from the database by name
- * - query songs from the database by tag (s)
- * - query tags from the database by playlist
+ * - query a song(s) from the database, by author
+ * x query a tag from the database
+ * x query a playlist from the database by name
+ * x query songs from the database by tag (s)
+ * x query tags from the database by playlist
  * 
  * - editing functionality for the playlist (TODO)
+ * - deleting functoinality for the database (TODO
  */
 public class DataBaseManager {
 	
@@ -232,7 +234,7 @@ public class DataBaseManager {
 			stmt.executeUpdate();	
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
-			return;
+			throw new SQLException("Filepath must be unique");
 		}
 		
 		
@@ -331,6 +333,67 @@ public class DataBaseManager {
 	}
 	
 	/**
+	 * returns a complete playlist, together with all of its songs, based on a complete
+	 * playlist name.
+	 * @param filename : filename of the database
+	 * @param name : name of the playlist
+	 * @return a complete Playlist object
+	 * @throws SQLException
+	 */
+	public static Playlist getPlaylistByName(String filename, String name) throws SQLException {
+		DataBaseManager.connect(filename);
+		
+		String sqlCommand = "SELECT id, name FROM playlists WHERE name = ?;";
+		PreparedStatement stmt = DataBaseManager.conn.prepareStatement(sqlCommand);
+		stmt.setString(1, name);
+		ResultSet rs = stmt.executeQuery();
+		
+		Playlist playlist = new Playlist(rs.getString("name"));
+		int playlistID = rs.getInt("id");
+		
+		for(Song song : DataBaseManager.getSongsByPlaylist(filename, playlist)) {
+			playlist.addSong(song);
+		}
+		
+		DataBaseManager.closeConnection();
+		return playlist;
+	}
+	
+	/**
+	 * returns the songs in a given playlist
+	 * @param database : name of the database
+	 * @param name : name of the playlist
+	 * @return
+	 */
+	public static ArrayList<Song> getSongsByPlaylist(String filename, Playlist playlist) throws SQLException{
+		DataBaseManager.connect(filename);
+		
+		String sqlCommand = "SELECT songs.id, songs.name, songs.filepath, songs.author FROM \n"
+				+ "playlists INNER JOIN playlists_songs \n"
+				+ " ON playlists.id = playlists_songs.playlist_id \n"
+				+ "INNER JOIN songs ON playlists_songs.song_id = songs.id \n"
+				+ "WHERE playlists.name = ?;";
+		
+		PreparedStatement stmt = DataBaseManager.conn.prepareStatement(sqlCommand);
+		stmt.setString(1, playlist.getName());
+		ResultSet rs = stmt.executeQuery();
+		
+		ArrayList<Song> result = new ArrayList<Song>(); 
+		while(rs.next()) {
+			Song nextSong = new Song(rs.getString("songs.name"), rs.getString("songs.filepath"));
+			nextSong.setAuthor(rs.getString("songs.author"));
+			for(String tag : DataBaseManager.getTagsBySong(filename, nextSong)) {
+				nextSong.addTag(tag);
+			}
+			result.add(nextSong);
+		}
+		
+		DataBaseManager.closeConnection();
+		return result;
+	}
+			
+	
+	/**
 	 * Given a song (assuming we do not know the tags), returns a HashSet
 	 * of tags
 	 * @param filename : filename of the database
@@ -357,7 +420,65 @@ public class DataBaseManager {
 		
 		HashSet<String> result = new HashSet<String>();
 		while(rs.next()) {
+			result.add(rs.getString("tags.name"));
+		}
+		
+		DataBaseManager.closeConnection();
+		return result;
+	}
+	/**
+	 * returns a hashset of all the tags in the database that have a name
+	 * like the given string
+	 * @param filename : filename of the database
+	 * @param tag : name of the tag to be queried
+	 * @return
+	 */
+	public static HashSet<String> getTagsLike(String filename, String tag) throws SQLException {
+		DataBaseManager.connect(filename);
+		
+		String sqlCommand = "SELECT name FROM tags WHERE name like ?;";
+		PreparedStatement stmt = DataBaseManager.conn.prepareStatement(sqlCommand);
+		stmt.setString(1, tag + "%");
+		
+		ResultSet rs = stmt.executeQuery();
+		HashSet<String> result = new HashSet<String>();
+		while(rs.next()) {
 			result.add(rs.getString("name"));
+		}
+		
+		DataBaseManager.closeConnection();
+		return result;
+	}
+	
+	/**
+	 * Given a tag, returns all song objects in the database that have that tag
+	 * @param filename : name of database
+	 * @param tag : tag to be queried against
+	 * @throws SQLException
+	 * @returns a list of all the songs with that particular tag
+	 */
+	public static ArrayList<Song> getSongsByTag(String filename, String tag) throws SQLException {
+		DataBaseManager.connect(filename);
+		
+		String sqlCommand = "SELECT songs.id, songs.name, songs.filepath, songs.author \n"
+				+ "FROM songs INNER JOIN songs_tags ON songs.id = songs_tags.song_id \n"
+				+ "INNER JOIN tags ON songs_tags.tag_id = tags.id \n"
+				+ "WHERE tags.name = ?;";
+		
+		PreparedStatement stmt = DataBaseManager.conn.prepareStatement(sqlCommand);
+		stmt.setString(1, tag);
+		ResultSet rs = stmt.executeQuery();
+		
+		ArrayList<Song> result = new ArrayList<Song>();
+		while(rs.next()) {
+			Song nextSong = new Song(rs.getString("songs.name"),
+					rs.getString(rs.getString("songs.filepath")));
+			nextSong.setAuthor(rs.getString("songs.author"));
+			nextSong.setId(rs.getInt("songs.id"));
+			for(String songTag : DataBaseManager.getTagsBySong(filename, nextSong)) {
+				nextSong.addTag(songTag);
+			}
+			result.add(nextSong);
 		}
 		
 		DataBaseManager.closeConnection();

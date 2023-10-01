@@ -21,7 +21,7 @@ public class Playlist {
 		this.setName(name);
 	}
 	
-	public Playlist(ArrayList<Song> songs) {
+	public Playlist(String name, ArrayList<Song> songs) {
 		this.songs = songs;
 		this.currentIndex = 0;
 		playlistIsEmpty = false;
