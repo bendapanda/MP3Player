@@ -43,6 +43,7 @@ public class Playlist {
 	 * TODO: error handling for if currentIndex is out of bounds
 	 */
 	public Song getCurrentSong() {
+		if(playlistIsEmpty) {return null;}
 		return songs.get(currentIndex);
 	}
 	
@@ -50,9 +51,10 @@ public class Playlist {
 	 * 
 	 */
 	public void nextSong() {
-		songsToPlay.remove(getCurrentSong());
-		currentIndex ++;
-		currentIndex %= songs.size();
+		if(!playlistIsEmpty) {
+			currentIndex ++;
+			currentIndex %= songs.size();
+		}
 	}
 	
 	/** Adds a <code>Song</code> object to the playlist
@@ -61,6 +63,7 @@ public class Playlist {
 	 */
 	public void addSong(Song song) {
 		songs.add(song);
+		playlistIsEmpty = false;
 	}
 
 	public String getName() {
