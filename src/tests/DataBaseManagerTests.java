@@ -20,15 +20,17 @@ import org.junit.jupiter.api.Test;
 import application.DataBaseManager;
 import application.Playlist;
 import application.Song;
+import javafx.embed.swing.JFXPanel;
 
 class DataBaseManagerTests {
 	static String testDatabaseName = "db/testDatabase.db";
 	
 	private String crabRave = "src/resources/crab-rave.mp3";
+	private String rockDJ = "src/resources/rock-dj.mp3";
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
-		DataBaseManager.initaliseDatabase(testDatabaseName);
+		JFXPanel fxPanel = new JFXPanel();
 	}
 
 	@AfterAll
@@ -37,175 +39,14 @@ class DataBaseManagerTests {
 
 	@BeforeEach
 	void setUp() throws Exception {
+		DataBaseManager.initaliseDatabase(testDatabaseName);
 	}
 
 	@AfterEach
 	void tearDown() throws Exception {
+		DataBaseManager.closeConnection();
 	}
 
-	/**
-	 * Tests connecting to a brand new database, and making a new song table
-	 * 
-	 * Input: new database name
-	 * 
-	 * Output: query the database to make sure the table exists
-	 */
-	@Test
-	void testCreateSongTableOnNewDataBase() {
-		try {
-			DataBaseManager.createSongTable("db/initialisationTest.db");
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-		// ensure the table exists
-		try {
-			String url = "jdbc:sqlite:C:/sqlite/db/initialisationTest.db";
-			Connection conn = DriverManager.getConnection(url);
-			DatabaseMetaData meta = conn.getMetaData();
-			ResultSet rs = meta.getTables(null, null, "songs", new String[] {"TABLE"});
-			
-			if(!rs.next()) {
-				System.out.println("no item");
-				fail();
-			}
-			conn.close();
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-	}
-	
-	/**
-	 * Tests connecting to a brand new database, and making a new playlist table
-	 * 
-	 * Input: new database name
-	 * 
-	 * Output: query the database to make sure the table exists
-	 */
-	@Test
-	void testCreatePlaylistTableOnNewDataBase() {
-		try {
-			DataBaseManager.createPlaylistTable("db/initialisationTest.db");
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-		// ensure the table exists
-		try {
-			String url = "jdbc:sqlite:C:/sqlite/db/initialisationTest.db";
-			Connection conn = DriverManager.getConnection(url);
-			DatabaseMetaData meta = conn.getMetaData();
-			ResultSet rs = meta.getTables(null, null, "playlists", new String[] {"TABLE"});
-			
-			if(!rs.next()) {
-				System.out.println("no playlist table");
-				fail();
-			}
-			conn.close();
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-	}
-	
-	/**
-	 * Tests connecting to a brand new database, and making a new tags table
-	 * Input: new database name
-	 * 
-	 * Output: query the database to make sure the table exists
-	 */
-	@Test
-	void testCreateTagTableOnNewDataBase() {
-		try {
-			DataBaseManager.createTagsTable("db/initialisationTest.db");
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-		// ensure the table exists
-		try {
-			String url = "jdbc:sqlite:C:/sqlite/db/initialisationTest.db";
-			Connection conn = DriverManager.getConnection(url);
-			DatabaseMetaData meta = conn.getMetaData();
-			ResultSet rs = meta.getTables(null, null, "tags", new String[] {"TABLE"});
-			
-			if(!rs.next()) {
-				System.out.println("no tags table");
-				fail();
-			}
-			conn.close();
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-		
-	}
-	
-	/**
-	 * Tests connecting to a brand new database, and making a new playlists songs table
-	 * Input: new database name
-	 * 
-	 * Output: query the database to make sure the table exists
-	 */
-	@Test
-	void testCreatePlaylistSongsTableOnNewDataBase() {
-		try {
-			DataBaseManager.createPlaylistSongTable("db/initialisationTest.db");
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-		// ensure the table exists
-		try {
-			String url = "jdbc:sqlite:C:/sqlite/db/initialisationTest.db";
-			Connection conn = DriverManager.getConnection(url);
-			DatabaseMetaData meta = conn.getMetaData();
-			ResultSet rs = meta.getTables(null, null, "playlist_songs", new String[] {"TABLE"});
-			
-			if(!rs.next()) {
-				System.out.println("no playlists_songs tab;e");
-				fail();
-			}
-			conn.close();
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-		
-	}
-	
-	/**
-	 * Tests connecting to a brand new database, and making a new tags songs table
-	 * Input: new database name
-	 * 
-	 * Output: query the database to make sure the table exists
-	 */
-	@Test
-	void testCreateSongsTagsTableOnNewDataBase() {
-		try {
-			DataBaseManager.createSongTagsTable("db/initialisationTest.db");
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-		// ensure the table exists
-		try {
-			String url = "jdbc:sqlite:C:/sqlite/db/initialisationTest.db";
-			Connection conn = DriverManager.getConnection(url);
-			DatabaseMetaData meta = conn.getMetaData();
-			ResultSet rs = meta.getTables(null, null, "songs_tags", new String[] {"TABLE"});
-			
-			if(!rs.next()) {
-				System.out.println("no songs tags tab;e");
-				fail();
-			}
-			conn.close();
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-			fail();
-		}
-	}
 	
 	/**
 	 * Tests adding tags to database. Ensures the test is successful 
@@ -214,13 +55,13 @@ class DataBaseManagerTests {
 	@Test
 	void testAddTagToDatabase() {
 		try {//first, add the tag
-			DataBaseManager.addTagToDataBase(testDatabaseName, "testTag");
+			DataBaseManager.addTagToDataBase("testTag");
 		} catch (SQLException e) {
 			fail();
 		}
 		
 		try {
-			HashSet<String> res = DataBaseManager.getTagsLike(testDatabaseName, "testTag");
+			HashSet<String> res = DataBaseManager.getTagsLike("testTag");
 			assertTrue(res.contains("testTag"));
 		} catch (SQLException e) {
 			System.out.println("error with getTagsLike");
@@ -229,14 +70,14 @@ class DataBaseManagerTests {
 		
 		// now try add the tag again, and check the result only contains 1 thing
 		try {//first, add the tag
-			DataBaseManager.addTagToDataBase(testDatabaseName, "testTag");
+			DataBaseManager.addTagToDataBase("testTag");
 		} catch (SQLException e) {
 			System.out.println("2nd pass");
 			fail();
 		}
 		
 		try {
-			HashSet<String> res = DataBaseManager.getTagsLike(testDatabaseName, "testTag");
+			HashSet<String> res = DataBaseManager.getTagsLike("testTag");
 			assertTrue(res.contains("testTag"));
 			assertTrue(res.size() == 1);
 		} catch (SQLException e) {
@@ -255,31 +96,26 @@ class DataBaseManagerTests {
 	@Test
 	void testAddSongNoTagsToDatabase() {
 		Song songToAdd = new Song("test song", crabRave);
-		songToAdd.setAuthor("red ted");
+		songToAdd.setAuthor("red red");
 		
 		try {
-			DataBaseManager.addSongToDataBase(testDatabaseName, songToAdd);
+			DataBaseManager.addSongToDataBase(songToAdd);
 		} catch (SQLException e) {
+			System.out.println("failed adding song the first time");
 			fail();
 		}
 		
 		try {
-			String url = "jdbc:sqlite:C:/sqlite/db/initialisationTest.db";
-			Connection conn = DriverManager.getConnection(url);
-			
-			String sqlCommand = "SELECT name FROM songs WHERE filepath = ?;";
-			PreparedStatement stmt = conn.prepareStatement(sqlCommand);
-			stmt.setString(1, crabRave);
-			ResultSet rs = stmt.executeQuery();
-			
-			assertTrue(rs.next());
-			conn.close();
+			Song result = DataBaseManager.getSongsByName("test song").get(0);
+			assertTrue(result.getAuthor() == "red red");
 		} catch(SQLException e) {
+			System.out.println("something wrong wiht the query");
 			fail();
 		}
 		
 		try {// Now try to add the song again (should get an error)
-			DataBaseManager.addSongToDataBase(testDatabaseName, songToAdd);
+			DataBaseManager.addSongToDataBase(songToAdd);
+			System.out.println("Something went wrong adding for the second time");
 			fail();
 		} catch (SQLException e) {
 			
@@ -290,44 +126,28 @@ class DataBaseManagerTests {
 	
 	@Test
 	void testAddSongToDatabaseWithTags() {
-		Song songToAdd = new Song("test song", crabRave);
+		Song songToAdd = new Song("test song2", rockDJ);
 		songToAdd.setAuthor("red ted");
 		songToAdd.addTag("test tag");
 		songToAdd.addTag("my tag");
 		
 		try {
-			DataBaseManager.addSongToDataBase(testDatabaseName, songToAdd);
+			DataBaseManager.addSongToDataBase(songToAdd);
 		} catch (SQLException e) {
+			System.out.println("add to database" + e.getMessage());
 			fail();
 		}
 		
 		try {
-			String url = "jdbc:sqlite:C:/sqlite/db/initialisationTest.db";
-			Connection conn = DriverManager.getConnection(url);
+			Song result = DataBaseManager.getSongsByName("test song2").get(0);
+			HashSet<String> tags = DataBaseManager.getTagsLike("test");
 			
-			String sqlCommand = "SELECT name FROM songs WHERE filepath = ?;";
-			PreparedStatement stmt = conn.prepareStatement(sqlCommand);
-			stmt.setString(1, crabRave);
-			ResultSet rs = stmt.executeQuery();
+			assertTrue(result.getTags().contains("test tag"));
+			assertTrue(tags.contains("test tag"));
 			
-			assertTrue(rs.next());
-			
-			sqlCommand = "SELECT id, name FROM tags WHERE name = ?;";
-			stmt = conn.prepareStatement(sqlCommand);
-			stmt.setString(1, "my tag");
-			rs = stmt.executeQuery();
-			
-			assertTrue(rs.next());
-			
-			int tagId = rs.getInt("id");
-			sqlCommand = "SELECT id FROM songs_tags WHERE tag_id = ?;";
-			stmt = conn.prepareStatement(sqlCommand);
-			stmt.setInt(1, tagId);
-			rs = stmt.executeQuery();
-			
-			assertTrue(rs.next());
 		} catch(SQLException e) {
 			fail();
+			System.out.println("something wrong with query");
 		}
 	}
 	
@@ -340,29 +160,26 @@ class DataBaseManagerTests {
 		playlist.addSong(new Song("test song", crabRave));
 		
 		try {
-			DataBaseManager.addPlaylistToDataBase(testDatabaseName, playlist);
+			DataBaseManager.addPlaylistToDataBase(playlist);
 		} catch(SQLException e) {
+			System.out.println("failed test adding playlist to database for the first time");
 			fail();
 		}
 		
 		try {
-			String url = "jdbc:sqlite:C:/sqlite/db/initialisationTest.db";
-			Connection conn = DriverManager.getConnection(url);
-			
-			String sqlCommand = "SELECT name FROM playlists WHERE name = ";
-			PreparedStatement stmt = conn.prepareStatement(sqlCommand);
-			stmt.setString(1, playlist.getName());
-			ResultSet rs = stmt.executeQuery();
-			
-			assertTrue(rs.next());
-			conn.close();
+			Playlist p = DataBaseManager.getPlaylistByName("test playlist");
+			String name = p.getName();
+			assertTrue(name.equals("test playlist"));
 		} catch(SQLException e) {
+			System.out.println("something is wrong with the query");
+			System.out.println(e.getMessage());
 			fail();
 		}
 		
 		try {
-			DataBaseManager.addPlaylistToDataBase(testDatabaseName, playlist);
+			DataBaseManager.addPlaylistToDataBase(playlist);
 		} catch(SQLException e) {
+			System.out.println("failed test adding playlist to database for the second time");
 			fail();
 		}
 		
@@ -372,20 +189,54 @@ class DataBaseManagerTests {
 	 */
 	@Test
 	void testGetSongByName() {
+		
 		try {
-			ArrayList<Song> songs = DataBaseManager.getSongsByName(testDatabaseName, "test son");
+			Song songToGet = new Song("test song", crabRave);
+			songToGet.addTag("my tag");
+			DataBaseManager.addSongToDataBase(songToGet);
+			ArrayList<Song> songs = DataBaseManager.getSongsByName("test son");
 			assertEquals(songs.get(0).getName(), "test song");
 			assertTrue(songs.get(0).getTags().contains("my tag"));
 		} catch(SQLException e) {
+			System.out.println("exception" + e.getMessage());
 			fail();
 		}
 	}
 	
+	/*
+	 * Test getting a song's tags from the database
+	 */
 	@Test
 	void testGetTagsBySong() {
 		try {
-			ArrayList<Song> songs = DataBaseManager.getSongsByTag(testDatabaseName, "my tag");
+			ArrayList<Song> songs = DataBaseManager.getSongsByTag("my tag");
 			assertTrue(songs.get(0).getTags().contains("my tag"));
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+			fail();
+		}
+	}
+	
+	/*
+	 * Test getting tags like a certian tag
+	 */
+	@Test
+	void testGettingTagsLike() {
+		try {
+			DataBaseManager.addTagToDataBase( "testtag1");
+			DataBaseManager.addTagToDataBase("testtag2");
+		} catch (SQLException e) {
+			fail();
+		}
+		
+		try {
+			HashSet<String> tagSet = DataBaseManager.getTagsLike("test");
+			assertTrue(tagSet.contains("testtag1"));
+			assertTrue(tagSet.contains("testtag2"));
+			
+			tagSet = DataBaseManager.getTagsLike("testtag1");
+			assertTrue(tagSet.contains("testtag1"));
+			assertFalse(tagSet.contains("testtag2"));
 		} catch (SQLException e) {
 			fail();
 		}
